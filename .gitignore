@@ -1,0 +1,26 @@
+# Build output
+bin/
+obj/
+
+# No server-side config file by design — the token arrives per request via the
+# MCP client header. This block just guards against anyone adding a local one.
+*.local.json
+
+# Runtime data (audit log, rolling logs)
+data/
+
+# IDE
+.vs/
+.idea/
+*.user
+
+# OS / shell noise
+bash.exe.stackdump
+
+# Internal / local tooling — NOT for publication. CLAUDE.md references private
+# companion repos and commercial intent; the rest are local dev-session config.
+# Force-add later if you decide to publish any of them (git add -f <file>).
+CLAUDE.md
+.claude/
+.firepit/
+.mcp.json
