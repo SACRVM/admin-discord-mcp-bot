@@ -13,7 +13,9 @@
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishReadyToRun>true</PublishReadyToRun>
-    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Discord.Net relies on named cultures when processing guild data, so
+         invariant-globalization mode must stay OFF (it throws CultureNotFoundException). -->
+    <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>
