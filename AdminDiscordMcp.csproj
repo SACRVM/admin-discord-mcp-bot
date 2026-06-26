@@ -1,18 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <!-- WinExe: no console window when launched by the Scheduled Task at logon. -->
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>AdminDiscordMcp</RootNamespace>
-    <AssemblyName>AdminDiscordMcp</AssemblyName>
+    <AssemblyName>admin-discord-mcp</AssemblyName>
+    <Version>1.0.0</Version>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>AnyCPU;x64</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- Self-contained: the installer needs no .NET runtime prerequisite. -->
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishReadyToRun>true</PublishReadyToRun>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- Headless HTTP service: no static web assets, no web.config transform. -->
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
     <!-- Discord.Net relies on named cultures when processing guild data, so
          invariant-globalization mode must stay OFF (it throws CultureNotFoundException). -->
     <InvariantGlobalization>false</InvariantGlobalization>

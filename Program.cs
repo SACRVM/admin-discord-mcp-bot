@@ -14,7 +14,8 @@ builder.Configuration.AddEnvironmentVariables(prefix: "ADMCP_");
 
 var config = BotConfig.Load(builder.Configuration);
 
-builder.Logging.AddFile("data/logs/admcp.log", o => o.Append = true);
+AppPaths.Ensure();
+builder.Logging.AddFile(AppPaths.LogFilePath, o => o.Append = true);
 
 // ---- Services ----
 builder.Services.AddSingleton(config);

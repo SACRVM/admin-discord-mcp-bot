@@ -30,15 +30,12 @@ Plenty of Discord MCP servers exist. This one is the specific combination none o
 
 ---
 
-## Requirements
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- A Discord application with a bot (see setup below)
-
-## One-time Discord setup
+## Step 1 — One-time Discord setup
 
 1. Create an application at the [Discord Developer Portal](https://discord.com/developers/applications).
-2. Under **Bot**, copy the **token** (this is the only credential this server uses).
+2. Under **Bot**, click **Reset Token** and copy the **bot token** (the long `MTxxxx.yyyy.zzzz`
+   value — *not* the Application ID, Public Key, or Client Secret). This is the only credential
+   the server ever uses, and it is supplied by you at connect time, never stored on the server.
 3. Invite the bot to your target guild(s) with the **Administrator** permission.
 4. **Move the bot's role to the top** of the guild's role list. Even with Administrator, Discord's
    role hierarchy still applies — the bot cannot manage roles or members above its own highest role.
@@ -46,21 +43,41 @@ Plenty of Discord MCP servers exist. This one is the specific combination none o
    - **Server Members Intent** — required for `list_members` / `list_timeouts`.
    - **Message Content Intent** — governs reading message text.
 
-## Build & run
+## Step 2 — Install (Windows, recommended)
+
+1. Download `AdminDiscordMcpSetup-<version>-win-x64.exe` from the
+   [Releases](https://github.com/Chloe3DX/admin-discord-mcp-bot/releases) page (or build it
+   yourself — see [Build from source](#build-from-source)).
+2. Run the installer. No admin rights needed. It will:
+   - Optionally prompt for your **bot token** (paste it, or leave blank to add later).
+   - Install to `%LOCALAPPDATA%\Programs\admin-discord-mcp\` (no UAC, self-contained — no .NET
+     runtime to install separately).
+   - Register a **Scheduled Task** that starts the server at logon and auto-restarts on crash.
+   - Register the MCP with **Claude Code** (`user` scope) if the `claude` CLI is on PATH —
+     wiring your token in as the `X-Discord-Bot-Token` header.
+3. Open any Claude Code session — `/mcp` should show **`discord-admin`** connected. Try:
+   *"List the roles in guild `<your-guild-id>`."*
+
+The token lives only in your Claude MCP registration (never on the server, never in the repo).
+Re-running the installer is safe.
+
+## Step 2 (alternative) — Run / connect manually (any OS)
+
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 
 ```bash
-dotnet run --project .
-# or build a self-contained single-file exe:
-dotnet publish -c Release
+dotnet run --project .          # listens on http://127.0.0.1:47823/mcp  (GET /healthz for liveness)
 ```
 
-The server listens on `http://127.0.0.1:47823/mcp` by default. A `GET /healthz` endpoint is
-available for liveness checks.
+Then point your MCP client at it, supplying the bot token **per connection** as the
+`X-Discord-Bot-Token` header. With the Claude Code CLI:
 
-## Connect your MCP client
+```bash
+claude mcp add discord-admin --scope user --transport http http://127.0.0.1:47823/mcp \
+  --header "X-Discord-Bot-Token: YOUR_DISCORD_BOT_TOKEN"
+```
 
-The bot token is supplied **per connection** as the `X-Discord-Bot-Token` header. Example
-`.mcp.json` (Claude Code / Claude Desktop style):
+…or via a client `.mcp.json`:
 
 ```json
 {
@@ -68,16 +85,30 @@ The bot token is supplied **per connection** as the `X-Discord-Bot-Token` header
     "discord-admin": {
       "type": "http",
       "url": "http://127.0.0.1:47823/mcp",
-      "headers": {
-        "X-Discord-Bot-Token": "YOUR_DISCORD_BOT_TOKEN"
-      }
+      "headers": { "X-Discord-Bot-Token": "YOUR_DISCORD_BOT_TOKEN" }
     }
   }
 }
 ```
 
 To act as a different bot, point a second connection at a second token. Every tool takes an
-explicit `guildId` argument, so one connection can target multiple servers the bot is in.
+explicit `guildId` argument, so one connection can target multiple servers that bot is in.
+
+## Build from source
+
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). To build the Windows installer
+you also need [Inno Setup 6](https://jrsoftware.org/isdl.php).
+
+```powershell
+# Single-file exe only:
+dotnet publish AdminDiscordMcp.csproj -c Release -o bin\win-x64
+
+# Full installer (exe + Scheduled Task + Claude wiring):
+powershell.exe -ExecutionPolicy Bypass -File installer\build-installer.ps1
+#   -> bin\installer\AdminDiscordMcpSetup-<version>-win-x64.exe
+```
+
+Pushing a `v*` tag builds the installer in CI and attaches it to a GitHub Release automatically.
 
 ## Configuration
 
@@ -119,7 +150,8 @@ Plus `who_am_i` — verifies the supplied token by logging in and returning the 
   header, no Discord operation is possible.
 - **`dryRun` by default.** Destructive operations are simulated until explicitly applied.
 - **Audit log.** Every tool call (dry or applied) is appended as one JSON line to
-  `data/admin-audit.log`. The raw bot token is **never** logged — only a short SHA-256 fingerprint.
+  `%LOCALAPPDATA%\admin-discord-mcp\admin-audit.log` (rolling logs sit beside it under `logs\`).
+  The raw bot token is **never** logged — only a short SHA-256 fingerprint.
 
 ## Limitations
 

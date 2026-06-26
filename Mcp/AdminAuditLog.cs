@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AdminDiscordMcp.Config;
 
 namespace AdminDiscordMcp.Mcp;
 
@@ -11,12 +12,11 @@ namespace AdminDiscordMcp.Mcp;
 public sealed class AdminAuditLog
 {
     private readonly object _lock = new();
-    private readonly string _path = Path.Combine("data", "admin-audit.log");
+    private readonly string _path = AppPaths.AuditLogPath;
 
     public AdminAuditLog()
     {
-        var dir = Path.GetDirectoryName(_path);
-        if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+        AppPaths.Ensure();
     }
 
     public void Log(string action, object payload, bool ok = true, string? actor = null)
