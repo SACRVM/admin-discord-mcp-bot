@@ -46,7 +46,7 @@ Plenty of Discord MCP servers exist. This one is the specific combination none o
 ## Step 2 — Install (Windows, recommended)
 
 1. Download `AdminDiscordMcpSetup-<version>-win-x64.exe` from the
-   [Releases](https://github.com/Chloe3DX/admin-discord-mcp-bot/releases) page (or build it
+   [Releases](https://github.com/chloe-dream/admin-discord-mcp-bot/releases) page (or build it
    yourself — see [Build from source](#build-from-source)).
 2. Run the installer. No admin rights needed. It will:
    - Optionally prompt for your **bot token** (paste it, or leave blank to add later).
