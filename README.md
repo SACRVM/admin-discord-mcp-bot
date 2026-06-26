@@ -123,8 +123,8 @@ Plus `who_am_i` — verifies the supplied token by logging in and returning the 
 
 ## Limitations
 
-- **Guild creation** (`POST /guilds`) is a Phase-2 feature and works only while the bot is in
-  fewer than 10 guilds (a Discord platform rule, not bypassable). Bots own the guilds they create.
+- **Guild creation is intentionally not supported.** Creating a guild (`POST /guilds`) makes the
+  bot the owner — a deliberate non-goal. This server only administers guilds it has been invited to.
 - **Role hierarchy applies** even with Administrator — keep the bot's role at the top.
 - **Member listing** requires the Server Members privileged intent and is paginated (max 1000/call).
 - **No presence over REST** — member online status and gateway latency are not available.
@@ -132,10 +132,13 @@ Plus `who_am_i` — verifies the supplied token by logging in and returning the 
 
 ## Roadmap
 
-- **Phase 1 (done):** full read/write admin surface over REST, multi-tenant token, dryRun, audit.
-- **Phase 2:** server-blueprint tool (build out categories/channels/roles/permissions/events in
-  one call) and `CreateGuild`.
-- **Phase 3 (optional):** opt-in gateway mode for live event subscription.
+- **Done:** the full read/write admin surface over REST (62 tools), multi-tenant per-request
+  token, `dryRun` by default, token-scrubbed audit log.
+- **Possible future (optional):** opt-in gateway mode for live event subscription.
+
+By design there is **no "blueprint" mega-tool** and **no guild-creation tool** — the agent shapes
+servers directly from natural-language requests using the atomic tools above, and the bot must
+never own a guild.
 
 ## License
 
