@@ -331,26 +331,27 @@ public sealed class DiscordWriteTools
     public async Task<object> BulkAssignRole(
         [Description("Target guild (server) ID as decimal string.")] string guildId,
         [Description("Role ID (decimal string).")] string roleId,
-        [Description("User IDs (array of decimal strings).")] string[] userIds,
+        [Description("User IDs as a comma-separated list of decimal strings (e.g. \"123,456,789\").")] string userIds,
         [Description("Audit-log reason. Optional.")] string? reason = null,
         [Description("If true (default), simulate without changing Discord.")] bool dryRun = true)
     {
         if (!ulong.TryParse(roleId, out var rid))
             throw new ArgumentException("roleId must be a decimal string");
-        if (userIds == null || userIds.Length == 0)
-            throw new ArgumentException("userIds must be a non-empty array");
+        var ids = SplitCsv(userIds);
+        if (ids.Length == 0)
+            throw new ArgumentException("userIds must be a non-empty comma-separated list");
 
         var g = await GuildAsync(guildId);
         var role = g.GetRole(rid);
         if (role == null)
             return AuditAndReturn("roles_bulk_assigned",
-                new { ok = false, dryRun, roleId, reason = "role_not_found", count = userIds.Length }, ok: false);
+                new { ok = false, dryRun, roleId, reason = "role_not_found", count = ids.Length }, ok: false);
 
         var applied = new List<object>();
         var skipped = new List<object>();
         var failed = new List<object>();
 
-        foreach (var raw in userIds)
+        foreach (var raw in ids)
         {
             if (!ulong.TryParse(raw, out var uid))
             {
@@ -400,26 +401,27 @@ public sealed class DiscordWriteTools
     public async Task<object> BulkRemoveRole(
         [Description("Target guild (server) ID as decimal string.")] string guildId,
         [Description("Role ID (decimal string).")] string roleId,
-        [Description("User IDs (array of decimal strings).")] string[] userIds,
+        [Description("User IDs as a comma-separated list of decimal strings (e.g. \"123,456,789\").")] string userIds,
         [Description("Audit-log reason. Optional.")] string? reason = null,
         [Description("If true (default), simulate without changing Discord.")] bool dryRun = true)
     {
         if (!ulong.TryParse(roleId, out var rid))
             throw new ArgumentException("roleId must be a decimal string");
-        if (userIds == null || userIds.Length == 0)
-            throw new ArgumentException("userIds must be a non-empty array");
+        var ids = SplitCsv(userIds);
+        if (ids.Length == 0)
+            throw new ArgumentException("userIds must be a non-empty comma-separated list");
 
         var g = await GuildAsync(guildId);
         var role = g.GetRole(rid);
         if (role == null)
             return AuditAndReturn("roles_bulk_removed",
-                new { ok = false, dryRun, roleId, reason = "role_not_found", count = userIds.Length }, ok: false);
+                new { ok = false, dryRun, roleId, reason = "role_not_found", count = ids.Length }, ok: false);
 
         var applied = new List<object>();
         var skipped = new List<object>();
         var failed = new List<object>();
 
-        foreach (var raw in userIds)
+        foreach (var raw in ids)
         {
             if (!ulong.TryParse(raw, out var uid))
             {
@@ -2162,6 +2164,12 @@ public sealed class DiscordWriteTools
 
     private static RequestOptions? BuildOptions(string? reason) =>
         string.IsNullOrWhiteSpace(reason) ? null : new RequestOptions { AuditLogReason = reason };
+
+    /// <summary>Split a comma-separated id list into trimmed, non-empty entries.</summary>
+    private static string[] SplitCsv(string? csv) =>
+        string.IsNullOrWhiteSpace(csv)
+            ? Array.Empty<string>()
+            : csv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     /// <summary>
     /// Send content that may exceed Discord's 2000-char limit, splitting it into
