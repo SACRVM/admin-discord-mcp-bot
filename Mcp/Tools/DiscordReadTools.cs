@@ -446,6 +446,9 @@ public sealed class DiscordReadTools
     {
         var g = await GuildAsync(guildId);
         var stickers = await g.GetStickersAsync();
+        // GetStickersAsync returns null (not an empty collection) when the guild has none.
+        if (stickers == null)
+            return new { count = 0, stickers = Array.Empty<object>() };
         var rows = stickers.OrderBy(s => s.Name).Select(s => new
         {
             id = s.Id.ToString(),
