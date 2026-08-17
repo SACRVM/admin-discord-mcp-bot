@@ -21,8 +21,8 @@ bash.exe.stackdump
 # companion repos and commercial intent; the rest are local dev-session config.
 # Force-add later if you decide to publish any of them (git add -f <file>).
 CLAUDE.md
-.claude/
-.firepit/
+# .claude/   # Firepit: blanket ignore disabled — it hid the shared config
+# .firepit/   # Firepit: blanket ignore disabled — it hid the shared config
 .mcp.json
 
 # Firepit + Claude Code — shared config versioned, runtime/personal local
