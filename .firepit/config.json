@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "admin-discord-mcp-bot",
+  "quickLinks": [
+  ],
+  "commands": [
+    {
+      "name": "Run",
+      "type": "Shell",
+      "icon": "play",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-Command",
+        "dotnet run --project \u0027D:\\repos\\admin-discord-mcp-bot\u0027; if ($LASTEXITCODE -ne 0) { Read-Host \u0022Exit $LASTEXITCODE - Enter zum Schliessen\u0022 }"
+      ],
+      "window": "reuse:run",
+      "longRunning": true
+    }
+  ,
+    { "name": "GitHub", "type": "url", "url": "https://github.com/SACRVM/admin-discord-mcp-bot", "icon": "🐙" }
+  ]
+}
