@@ -23,10 +23,10 @@
 AppId={{A3F1C9E2-7D4B-4E6A-9C18-2B5D8F0A1E37}
 AppName=admin-discord-mcp
 AppVersion={#AppVersion}
-AppPublisher=Chloe Dream
-AppPublisherURL=https://github.com/chloe-dream/admin-discord-mcp-bot
-AppSupportURL=https://github.com/chloe-dream/admin-discord-mcp-bot/issues
-AppUpdatesURL=https://github.com/chloe-dream/admin-discord-mcp-bot/releases
+AppPublisher=SACRVM
+AppPublisherURL=https://github.com/SACRVM/admin-discord-mcp-bot
+AppSupportURL=https://github.com/SACRVM/admin-discord-mcp-bot/issues
+AppUpdatesURL=https://github.com/SACRVM/admin-discord-mcp-bot/releases
 DefaultDirName={localappdata}\Programs\admin-discord-mcp
 DefaultGroupName=admin-discord-mcp
 DisableProgramGroupPage=yes
