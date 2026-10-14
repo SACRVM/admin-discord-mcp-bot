@@ -46,7 +46,7 @@ Plenty of Discord MCP servers exist. This one is the specific combination none o
 ## Step 2 — Install (Windows, recommended)
 
 1. Download `AdminDiscordMcpSetup-<version>-win-x64.exe` from the
-   [Releases](https://github.com/chloe-dream/admin-discord-mcp-bot/releases) page (or build it
+   [Releases](https://github.com/SACRVM/admin-discord-mcp-bot/releases) page (or build it
    yourself — see [Build from source](#build-from-source)).
 2. Run the installer. No admin rights needed. It will:
    - Optionally prompt for your **bot token** (paste it, or leave blank to add later).
@@ -130,8 +130,8 @@ There is **no config file**. Everything has a sane default; override via command
 
 All write tools default to `dryRun: true`. Pass `dryRun: false` to apply.
 
-**Read** (16): `guild_status`, `list_members`, `get_member`, `list_roles`, `list_channels`,
-`list_channel_permissions`, `list_threads`, `list_messages`, `list_bans`, `list_timeouts`,
+**Read** (17): `guild_status`, `list_members`, `get_member`, `list_roles`, `list_channels`,
+`list_channel_permissions`, `list_threads`, `list_messages`, `list_reactions`, `list_bans`, `list_timeouts`,
 `list_invites`, `list_stickers`, `list_emojis`, `list_scheduled_events`, `list_webhooks`,
 `audit_log_query`.
 
@@ -141,6 +141,13 @@ reactions), channels (create/modify/delete + permission overwrites), threads (cr
 invites, emojis, stickers, scheduled events, and webhooks.
 
 Plus `who_am_i` — verifies the supplied token by logging in and returning the bot's identity.
+
+Plus `invite_bot` — builds the OAuth2 authorization URL to invite the token's bot into a server
+(client_id resolved from the token, permissions default `8`, optional `guildId` preselect) and
+opens it in the host's default browser so a human can approve it. Not a Discord write: nothing
+changes until someone with Manage Server confirms the page. This is the server's one deliberate
+host-side action — ShellExecute on a URL built from a fixed `discord.com` base and validated
+numeric ids only.
 
 ## Security model
 
