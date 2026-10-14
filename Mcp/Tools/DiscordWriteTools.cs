@@ -59,7 +59,7 @@ public sealed class DiscordWriteTools
     /// <summary>
     /// True if destructive member ops must refuse this target: the bot itself, or
     /// any id in <see cref="BotConfig.ProtectedUserIds"/>. Replaces the blueprint's
-    /// hardcoded Chloe/Umbrella id checks.
+    /// hardcoded owner/Umbrella id checks.
     /// </summary>
     private async Task<bool> IsProtectedAsync(ulong userId)
     {
@@ -2257,14 +2257,7 @@ public sealed class DiscordWriteTools
         return mask;
     }
 
-    private static IEmote? ParseEmote(string s)
-    {
-        if (string.IsNullOrWhiteSpace(s)) return null;
-        var trimmed = s.Trim();
-        if (Emote.TryParse(trimmed, out var custom)) return custom;
-        try { return new Emoji(trimmed); }
-        catch { return null; }
-    }
+    private static IEmote? ParseEmote(string s) => EmoteParser.Parse(s);
 
     private static string PermissionMaskToString(ulong mask)
     {

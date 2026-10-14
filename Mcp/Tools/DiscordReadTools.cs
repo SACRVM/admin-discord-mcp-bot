@@ -357,6 +357,12 @@ public sealed class DiscordReadTools
                 editedUtc = m.EditedTimestamp?.UtcDateTime,
                 attachmentCount = m.Attachments?.Count ?? 0,
                 pinned = m.IsPinned,
+                reactions = m.Reactions?.Select(r => new
+                {
+                    emoji = r.Key.ToString(),
+                    count = r.Value.ReactionCount,
+                    byBot = r.Value.IsMe,
+                }).ToArray() ?? Array.Empty<object>(),
                 embeds = m.Embeds?.Select(e => new
                 {
                     title = e.Title,
@@ -370,6 +376,110 @@ public sealed class DiscordReadTools
                 }).ToArray() ?? Array.Empty<object>(),
             })
             .ToArray();
+    }
+
+    [McpServerTool, Description(
+        "Read the reactions on one message. Without emoji: the summary Discord shows under the message — every emoji " +
+        "with its count. With emoji: WHO reacted with it (user id, username, global name, bot flag). emoji is a unicode " +
+        "emoji (e.g. '👍') or a custom emote in Discord syntax ('<:name:id>' / '<a:name:id>') — the same syntax " +
+        "add_reaction takes and list_messages returns. Super (burst) reactors are included and flagged.")]
+    public async Task<object> ListReactions(
+        [Description("Target guild (server) ID as decimal string.")] string guildId,
+        [Description("Channel or thread ID (decimal string).")] string channelId,
+        [Description("Message ID (decimal string).")] string messageId,
+        [Description("Optional. Omit for per-emoji counts; pass an emoji to list the users who reacted with it.")] string? emoji = null,
+        [Description("Max users to return when emoji is given. Default 100, max 1000 (Discord pages 100 at a time).")] int limit = 100)
+    {
+        if (!ulong.TryParse(channelId, out var cid))
+            throw new ArgumentException("channelId must be a decimal string");
+        if (!ulong.TryParse(messageId, out var mid))
+            throw new ArgumentException("messageId must be a decimal string");
+        if (limit <= 0) limit = 100;
+        if (limit > 1000) limit = 1000;
+
+        var client = await _ctx.GetClientAsync();
+        var ch = await client.GetChannelAsync(cid);
+        if (ch is not IMessageChannel mc)
+            throw new ArgumentException("channel does not support messages");
+
+        var msg = await mc.GetMessageAsync(mid);
+        if (msg is not IUserMessage userMsg)
+            throw new InvalidOperationException($"Message {messageId} not found in channel {channelId}.");
+
+        var meta = userMsg.Reactions ?? new Dictionary<IEmote, ReactionMetadata>();
+
+        if (string.IsNullOrWhiteSpace(emoji))
+        {
+            var rows = meta
+                .Select(r => new
+                {
+                    emoji = r.Key.ToString(),
+                    count = r.Value.ReactionCount,
+                    normalCount = r.Value.NormalCount,
+                    superCount = r.Value.BurstCount,
+                    byBot = r.Value.IsMe,
+                })
+                .OrderByDescending(r => r.count)
+                .ToArray();
+
+            return new
+            {
+                channelId,
+                messageId,
+                totalReactions = rows.Sum(r => r.count),
+                distinctEmojis = rows.Length,
+                reactions = rows,
+            };
+        }
+
+        var emote = EmoteParser.Parse(emoji);
+        if (emote == null)
+            throw new ArgumentException("emoji must be a unicode emoji or '<:name:id>' / '<a:name:id>' custom-emote syntax");
+
+        // Match on ID for custom emotes, so the caller may omit the animated flag.
+        ReactionMetadata? found = null;
+        foreach (var kv in meta)
+            if (EmoteParser.Same(kv.Key, emote)) { found = kv.Value; break; }
+
+        // Super (burst) reactions are a separate user list on Discord's side —
+        // only worth a second round-trip when the summary says there are any.
+        var normal = await ReactorsAsync(userMsg, emote, limit, ReactionType.Normal);
+        var super = (found?.BurstCount ?? 0) > 0
+            ? await ReactorsAsync(userMsg, emote, limit, ReactionType.Burst)
+            : new List<IUser>();
+
+        var superIds = super.Select(u => u.Id).ToHashSet();
+        var users = normal.Concat(super)
+            .GroupBy(u => u.Id)
+            .Select(g => g.First())
+            .Select(u => new
+            {
+                id = u.Id.ToString(),
+                username = u.Username,
+                globalName = u.GlobalName,
+                isBot = u.IsBot,
+                super = superIds.Contains(u.Id),
+            })
+            .ToArray();
+
+        return new
+        {
+            channelId,
+            messageId,
+            emoji = emote.ToString(),
+            count = found?.ReactionCount ?? users.Length,
+            returned = users.Length,
+            truncated = (found?.ReactionCount ?? users.Length) > users.Length,
+            users,
+        };
+    }
+
+    private static async Task<List<IUser>> ReactorsAsync(IUserMessage msg, IEmote emote, int limit, ReactionType type)
+    {
+        var users = new List<IUser>();
+        await foreach (var batch in msg.GetReactionUsersAsync(emote, limit, options: null, type))
+            users.AddRange(batch);
+        return users;
     }
 
     [McpServerTool, Description("List currently banned users. Returns user id, username, ban reason. Paginated from Discord.")]
